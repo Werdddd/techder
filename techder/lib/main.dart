@@ -517,6 +517,7 @@ class ProfileScreen extends StatelessWidget {
               language.sampleCode,
             ),
             _buildResourcesSection(
+              context,
               'Learning Resources',
               language.resources,
             ),
@@ -592,7 +593,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildResourcesSection(String title, List<String> resources) {
+  Widget _buildResourcesSection(BuildContext context, String title, List<String> resources) {
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: Column(
@@ -607,30 +608,65 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          ...resources.map((resource) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(
-                      Icons.book,
-                      color: Colors.pink,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        resource,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.white,
-                          height: 1.5,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              )),
+          ...resources.map((resource) {
+            // Expect resource strings in format: "Label - https://..."
+            final parts = resource.split(' - ');
+            final label = parts.isNotEmpty ? parts[0] : resource;
+            final url = parts.length > 1 ? parts.sublist(1).join(' - ').trim() : '';
+
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.book,
+                    color: Colors.pink,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: url.isNotEmpty
+                        ? InkWell(
+                            onTap: () async {
+                              try {
+                                final uri = Uri.parse(url);
+                                if (await canLaunchUrl(uri)) {
+                                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Could not open: $url')),
+                                  );
+                                }
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Invalid URL: $url')),
+                                );
+                              }
+                            },
+                            child: Text(
+                              label,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: Colors.lightBlueAccent,
+                                height: 1.5,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          )
+                        : Text(
+                            label,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.white,
+                              height: 1.5,
+                            ),
+                          ),
+                  ),
+                ],
+              ),
+            );
+          }),
         ],
       ),
     );
