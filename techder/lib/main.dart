@@ -181,73 +181,73 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildAppBar() {
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            const Color(0xFF2a2a2a),
-            const Color(0xFF1a1a1a),
-          ],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
+  return Container(
+    padding: const EdgeInsets.all(16.0),
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        colors: [
+          const Color(0xFF2a2a2a),
+          const Color(0xFF1a1a1a),
+        ],
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Colors.pink, Colors.pinkAccent],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.code, color: Colors.white, size: 24),
+    ),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            SizedBox(
+              width: 60,
+              height: 60,
+              child: Image.asset(
+                'assets/techder-logo.png', // path to your logo
+                fit: BoxFit.contain,
               ),
-              const SizedBox(width: 12),
-              const Text(
-                'Techder',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              'Techder',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                letterSpacing: 1.2,
+              ),
+            ),
+          ],
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.pink.withOpacity(0.3), Colors.purple.withOpacity(0.3)],
+            ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.pink.withOpacity(0.5)),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.favorite, color: Colors.pink, size: 20),
+              const SizedBox(width: 6),
+              Text(
+                '${_matches.length}',
+                style: const TextStyle(
                   color: Colors.white,
-                  letterSpacing: 1.2,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
                 ),
               ),
             ],
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.pink.withOpacity(0.3), Colors.purple.withOpacity(0.3)],
-              ),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.pink.withOpacity(0.5)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.favorite, color: Colors.pink, size: 20),
-                const SizedBox(width: 6),
-                Text(
-                  '${_matches.length}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
+
+
 
   Widget _buildLanguageCard(ProgrammingLanguage language) {
     return Card(
