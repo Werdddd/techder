@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'languages.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+// Removed, as randomness is now handled by unique static strings
 
 void main() {
   runApp(const TechTinderApp());
@@ -22,33 +27,12 @@ class TechTinderApp extends StatelessWidget {
           ),
         ),
       ),
-
       home: const HomePage(),
     );
   }
 }
 
-class ProgrammingLanguage {
-  final String name;
-  final String emoji;
-  final String tagline;
-  final String bio;
-  final String description;
-  final String useCases;
-  final String sampleCode;
-  final List<String> resources;
-
-  ProgrammingLanguage({
-    required this.name,
-    required this.emoji,
-    required this.tagline,
-    required this.bio,
-    required this.description,
-    required this.useCases,
-    required this.sampleCode,
-    required this.resources,
-  });
-}
+// ProgrammingLanguage and languages data moved to `lib/languages.dart`
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -60,339 +44,23 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
   final List<ProgrammingLanguage> _matches = [];
-  
-  final List<ProgrammingLanguage> _languages = [
-    ProgrammingLanguage(
-      name: 'Python',
-      emoji: '🐍',
-      tagline: '"Life is short, use Python"',
-      bio: 'I\'m the friendly one everyone loves. Simple, elegant, and I can do pretty much anything from web apps to AI. Want to automate your life? I\'m your snake! 🎯',
-      description: 'Python is a high-level, interpreted programming language created by Guido van Rossum in 1991. Known for its clean syntax and readability, it emphasizes code simplicity and developer productivity.',
-      useCases: 'Web Development (Django, Flask), Data Science & AI, Automation & Scripting, Scientific Computing, Game Development',
-      sampleCode: '''# Hello World in Python
-print("Hello, World!")
+  final List<ProgrammingLanguage> _skipped = [];
+  late List<ProgrammingLanguage> _languages;
+  // Active tag filters for the Matches tab
+  final Set<String> _activeTagFilters = {};
 
-# Variables and types
-name = "TechTinder"
-year = 2025
-
-# Functions
-def greet(name):
-    return f"Hello, {name}!"
-
-print(greet("Developer"))''',
-      resources: [
-        'Python.org - Official Documentation',
-        'Automate the Boring Stuff with Python',
-        'Real Python Tutorials',
-        'Python for Everybody (Coursera)',
-      ],
-    ),
-    ProgrammingLanguage(
-      name: 'JavaScript',
-      emoji: '⚡',
-      tagline: '"I run the web"',
-      bio: 'Versatile, everywhere, and a bit chaotic. I started in browsers but now I\'m on servers too! Love me or hate me, you can\'t escape me. Full-stack is my middle name! 💛',
-      description: 'JavaScript is the programming language of the web, created in 1995. It enables interactive web pages and runs on virtually every browser. With Node.js, it conquered server-side development too.',
-      useCases: 'Frontend Development, Backend (Node.js), Mobile Apps (React Native), Desktop Apps (Electron), Game Development',
-      sampleCode: '''// Hello World in JavaScript
-console.log("Hello, World!");
-
-// Variables
-const name = "TechTinder";
-let year = 2025;
-
-// Functions
-function greet(name) {
-    return `Hello, \${name}!`;
-}
-
-// Arrow functions
-const add = (a, b) => a + b;
-
-console.log(greet("Developer"));''',
-      resources: [
-        'MDN Web Docs - JavaScript Guide',
-        'JavaScript.info',
-        'Eloquent JavaScript (free book)',
-        'FreeCodeCamp JavaScript Course',
-      ],
-    ),
-    ProgrammingLanguage(
-      name: 'Rust',
-      emoji: '🦀',
-      tagline: '"Fearless concurrency"',
-      bio: 'I\'m the safe choice - literally! Memory safety without garbage collection? That\'s me. A bit strict with rules, but hey, I prevent those nasty bugs. Performance with safety! 🛡️',
-      description: 'Rust is a modern systems programming language focused on safety, speed, and concurrency. Created in 2010, it prevents common bugs like null pointer dereferences and data races at compile time.',
-      useCases: 'Systems Programming, Game Engines, Web Assembly, CLI Tools, Embedded Systems, Blockchain',
-      sampleCode: '''// Hello World in Rust
-fn main() {
-    println!("Hello, World!");
-    
-    // Variables
-    let name = "TechTinder";
-    let year: i32 = 2025;
-    
-    // Function
-    let greeting = greet("Developer");
-    println!("{}", greeting);
-}
-
-fn greet(name: &str) -> String {
-    format!("Hello, {}!", name)
-}''',
-      resources: [
-        'The Rust Programming Language (The Book)',
-        'Rust by Example',
-        'Rustlings - Interactive Exercises',
-        'Official Rust Documentation',
-      ],
-    ),
-    ProgrammingLanguage(
-      name: 'Go',
-      emoji: '🐹',
-      tagline: '"Less is exponentially more"',
-      bio: 'Simple, fast, and built for the cloud! Created by Google legends, I\'m perfect for microservices and concurrent systems. No fancy features, just pure efficiency! ☁️',
-      description: 'Go (or Golang) was developed at Google in 2009 by Robert Griesemer, Rob Pike, and Ken Thompson. It\'s designed for simplicity, with built-in concurrency support via goroutines.',
-      useCases: 'Cloud Services, Microservices, DevOps Tools, Network Programming, CLI Applications, Backend APIs',
-      sampleCode: '''// Hello World in Go
-package main
-
-import "fmt"
-
-func main() {
-    fmt.Println("Hello, World!")
-    
-    // Variables
-    name := "TechTinder"
-    year := 2025
-    
-    // Functions
-    greeting := greet("Developer")
-    fmt.Println(greeting)
-}
-
-func greet(name string) string {
-    return fmt.Sprintf("Hello, %s!", name)
-}''',
-      resources: [
-        'Tour of Go (Official Interactive Tutorial)',
-        'Go by Example',
-        'Effective Go',
-        'Go Documentation',
-      ],
-    ),
-    ProgrammingLanguage(
-      name: 'TypeScript',
-      emoji: '💙',
-      tagline: '"JavaScript that scales"',
-      bio: 'I\'m JavaScript\'s sophisticated sibling. I add types to keep things organized and catch errors before they happen. Big projects? I\'m your type! 😎',
-      description: 'TypeScript is a typed superset of JavaScript developed by Microsoft in 2012. It adds optional static typing, classes, and interfaces, compiling to plain JavaScript.',
-      useCases: 'Large-scale Web Applications, Frontend Frameworks (Angular, React), Backend (Node.js), Mobile Development',
-      sampleCode: '''// Hello World in TypeScript
-console.log("Hello, World!");
-
-// Types
-const name: string = "TechTinder";
-let year: number = 2025;
-
-// Interfaces
-interface Developer {
-    name: string;
-    language: string;
-}
-
-// Functions with types
-function greet(name: string): string {
-    return `Hello, \${name}!`;
-}
-
-const dev: Developer = {
-    name: "You",
-    language: "TypeScript"
-};''',
-      resources: [
-        'TypeScript Official Documentation',
-        'TypeScript Handbook',
-        'Execute Program - TypeScript Course',
-        'TypeScript Deep Dive (free book)',
-      ],
-    ),
-    ProgrammingLanguage(
-      name: 'Swift',
-      emoji: '🦅',
-      tagline: '"Fast. Modern. Safe."',
-      bio: 'Apple\'s golden child! I make iOS and Mac apps beautiful and performant. Clean syntax, powerful features, and I\'m faster than you think. Ready to build the next big app? 📱',
-      description: 'Swift is a powerful programming language created by Apple in 2014 for iOS, macOS, watchOS, and tvOS development. It\'s designed to be fast, safe, and expressive.',
-      useCases: 'iOS Development, macOS Apps, watchOS Apps, tvOS Apps, Server-side Swift',
-      sampleCode: '''// Hello World in Swift
-print("Hello, World!")
-
-// Variables and constants
-let name = "TechTinder"
-var year = 2025
-
-// Functions
-func greet(_ name: String) -> String {
-    return "Hello, \\(name)!"
-}
-
-// Classes
-class Developer {
-    var name: String
-    init(name: String) {
-        self.name = name
-    }
-}
-
-print(greet("Developer"))''',
-      resources: [
-        'Swift.org - Official Documentation',
-        'Swift Playgrounds App',
-        '100 Days of Swift',
-        'Hacking with Swift',
-      ],
-    ),
-    ProgrammingLanguage(
-      name: 'Kotlin',
-      emoji: '🎯',
-      tagline: '"Concise. Safe. Interoperable."',
-      bio: 'JetBrains created me to fix Java\'s pain points. Now I\'m Google\'s preferred language for Android! Modern, concise, and 100% compatible with Java. Let\'s build something awesome! 🤖',
-      description: 'Kotlin is a modern, statically-typed programming language developed by JetBrains in 2011. Google announced it as the preferred language for Android development in 2019.',
-      useCases: 'Android Development, Backend Development, Multiplatform Mobile, Web Development, Server-side Apps',
-      sampleCode: '''// Hello World in Kotlin
-fun main() {
-    println("Hello, World!")
-    
-    // Variables
-    val name = "TechTinder"
-    var year = 2025
-    
-    // Functions
-    fun greet(name: String): String {
-        return "Hello, \$name!"
-    }
-    
-    // Data classes
-    data class Developer(val name: String)
-    
-    println(greet("Developer"))
-}''',
-      resources: [
-        'Kotlin Official Documentation',
-        'Kotlin Koans',
-        'Android Kotlin Fundamentals',
-        'Kotlin for Java Developers',
-      ],
-    ),
-    ProgrammingLanguage(
-      name: 'C++',
-      emoji: '⚙️',
-      tagline: '"Performance is everything"',
-      bio: 'The OG powerhouse! Game engines? Check. Operating systems? Check. I\'m complex, yes, but when you need raw power and control, I\'m still unbeatable. Respect your elders! 💪',
-      description: 'C++ was created by Bjarne Stroustrup in 1985 as an extension of C. It provides low-level memory control with high-level features like OOP, making it ideal for performance-critical applications.',
-      useCases: 'Game Development (Unreal Engine), Systems Programming, Embedded Systems, High-Performance Computing, Financial Systems',
-      sampleCode: '''// Hello World in C++
-#include <iostream>
-#include <string>
-
-using namespace std;
-
-int main() {
-    cout << "Hello, World!" << endl;
-    
-    // Variables
-    string name = "TechTinder";
-    int year = 2025;
-    
-    // Functions
-    auto greet = [](string name) {
-        return "Hello, " + name + "!";
-    };
-    
-    cout << greet("Developer") << endl;
-    return 0;
-}''',
-      resources: [
-        'LearnCpp.com',
-        'C++ Reference',
-        'The C++ Programming Language (book)',
-        'CppCon Conference Talks',
-      ],
-    ),
-    ProgrammingLanguage(
-      name: 'Java',
-      emoji: '☕',
-      tagline: '"Write once, run anywhere"',
-      bio: 'Enterprise is my domain! Been around since \'95 and still going strong. Verbose? Maybe. Reliable? Absolutely! Billions of devices run me. Legacy legend! 🏢',
-      description: 'Java is a class-based, object-oriented programming language developed by Sun Microsystems in 1995. It\'s known for its "write once, run anywhere" philosophy via the JVM.',
-      useCases: 'Enterprise Applications, Android Development, Backend Services, Big Data (Hadoop), Desktop Applications',
-      sampleCode: '''// Hello World in Java
-public class HelloWorld {
-    public static void main(String[] args) {
-        System.out.println("Hello, World!");
-        
-        // Variables
-        String name = "TechTinder";
-        int year = 2025;
-        
-        // Methods
-        String greeting = greet("Developer");
-        System.out.println(greeting);
-    }
-    
-    public static String greet(String name) {
-        return "Hello, " + name + "!";
-    }
-}''',
-      resources: [
-        'Oracle Java Tutorials',
-        'Java Documentation',
-        'Head First Java (book)',
-        'Effective Java (book)',
-      ],
-    ),
-    ProgrammingLanguage(
-      name: 'Ruby',
-      emoji: '💎',
-      tagline: '"Optimize for happiness"',
-      bio: 'I\'m elegant, expressive, and all about making developers happy. Rails made me famous for web apps. Life\'s too short for ugly code - let\'s write poetry together! ✨',
-      description: 'Ruby is a dynamic, object-oriented language created by Yukihiro Matsumoto in 1995. Its philosophy emphasizes simplicity and productivity with an elegant syntax.',
-      useCases: 'Web Development (Ruby on Rails), Automation Scripts, DevOps Tools, Prototyping, Data Processing',
-      sampleCode: '''# Hello World in Ruby
-puts "Hello, World!"
-
-# Variables
-name = "TechTinder"
-year = 2025
-
-# Methods
-def greet(name)
-  "Hello, #{name}!"
-end
-
-# Blocks and iterators
-3.times do |i|
-  puts "Iteration #{i}"
-end
-
-puts greet("Developer")''',
-      resources: [
-        'Ruby-lang.org - Official Site',
-        'Try Ruby (Interactive Tutorial)',
-        'The Ruby Way (book)',
-        'Ruby on Rails Guides',
-      ],
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    // Start with a shuffled copy of all languages so the user sees a random order each session
+    _languages = List<ProgrammingLanguage>.from(allLanguages)..shuffle();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF1a1a1a),
-      body: _currentIndex == 0
-          ? _buildSwipeView()
-          : _buildMatchesView(),
+      body: _currentIndex == 0 ? _buildSwipeView() : _buildMatchesView(),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
@@ -414,9 +82,8 @@ puts greet("Developer")''',
   }
 
   Widget _buildSwipeView() {
-    final availableLanguages = _languages
-        .where((lang) => !_matches.contains(lang))
-        .toList();
+  final availableLanguages =
+    _languages.where((lang) => !_matches.contains(lang) && !_skipped.contains(lang)).toList();
 
     if (availableLanguages.isEmpty) {
       return Center(
@@ -547,6 +214,28 @@ puts greet("Developer")''',
               ),
               textAlign: TextAlign.center,
             ),
+            const SizedBox(height: 12),
+            // Display difficulty and tags
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8,
+              runSpacing: 6,
+              children: [
+                Chip(
+                  label: Text(language.difficulty,
+                      style: const TextStyle(color: Colors.white)),
+                  backgroundColor: language.difficulty.toLowerCase() == 'easy'
+                      ? Colors.green
+                      : language.difficulty.toLowerCase() == 'hard'
+                          ? Colors.red
+                          : Colors.orange,
+                ),
+                ...language.tags.map((t) => Chip(
+                      label: Text(t, style: const TextStyle(color: Colors.white)),
+                      backgroundColor: Colors.grey[700],
+                    )),
+              ],
+            ),
             const SizedBox(height: 24),
             const Divider(color: Colors.grey),
             const SizedBox(height: 24),
@@ -604,16 +293,21 @@ puts greet("Developer")''',
   }
 
   void _skipLanguage() {
-    setState(() {
-      // Just skip, don't add to matches
-    });
+    final availableLanguages =
+        _languages.where((lang) => !_matches.contains(lang) && !_skipped.contains(lang)).toList();
+
+    if (availableLanguages.isNotEmpty) {
+      setState(() {
+        // Add the current language to skipped so it won't appear again
+        _skipped.add(availableLanguages[0]);
+      });
+    }
   }
 
   void _likeLanguage() {
-    final availableLanguages = _languages
-        .where((lang) => !_matches.contains(lang))
-        .toList();
-    
+    final availableLanguages =
+        _languages.where((lang) => !_matches.contains(lang) && !_skipped.contains(lang)).toList();
+
     if (availableLanguages.isNotEmpty) {
       setState(() {
         _matches.add(availableLanguages[0]);
@@ -665,25 +359,109 @@ puts greet("Developer")''',
               ),
             ),
           ),
-          Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.all(16),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 0.85,
+          // Filter chips based on tags found in the current matches
+          if (_matches.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  // build chips from unique tags in matches (includes Easy/Normal/Hard)
+                  ..._availableMatchTags().map((tag) {
+                    final selected = _activeTagFilters.contains(tag);
+                    return FilterChip(
+                      label: Text(tag, style: const TextStyle(color: Colors.white)),
+                      selected: selected,
+                      onSelected: (v) => setState(() {
+                        if (v) {
+                          _activeTagFilters.add(tag);
+                        } else {
+                          _activeTagFilters.remove(tag);
+                        }
+                      }),
+                      selectedColor: Colors.pink,
+                      checkmarkColor: Colors.white,
+                      backgroundColor: Colors.grey[800],
+                      labelStyle: const TextStyle(color: Colors.white),
+                    );
+                  }),
+                  // Clear filters chip
+                  if (_activeTagFilters.isNotEmpty)
+                    ActionChip(
+                      label: const Text('Clear'),
+                      onPressed: () => setState(() => _activeTagFilters.clear()),
+                      backgroundColor: Colors.grey[700],
+                      labelStyle: const TextStyle(color: Colors.white),
+                    ),
+                ],
               ),
-              itemCount: _matches.length,
-              itemBuilder: (context, index) {
-                final language = _matches[index];
-                return _buildMatchCard(language);
-              },
             ),
+          // Apply active tag filters to the matches list
+          Expanded(
+            child: Builder(builder: (context) {
+              final filteredMatches = _activeTagFilters.isEmpty
+                  ? _matches
+                  : _matches.where((m) {
+                      return _activeTagFilters.any((filter) {
+                        if (filter == 'Easy' || filter == 'Normal' || filter == 'Hard') {
+                          return m.difficulty.toLowerCase() == filter.toLowerCase();
+                        }
+                        return m.tags.contains(filter);
+                      });
+                    }).toList();
+
+              if (filteredMatches.isEmpty) {
+                return const Center(
+                  child: Text(
+                    'No matching Language',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                );
+              }
+
+              return GridView.builder(
+                padding: const EdgeInsets.all(16),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 0.85,
+                ),
+                itemCount: filteredMatches.length,
+                itemBuilder: (context, index) {
+                  final language = filteredMatches[index];
+                  return _buildMatchCard(language);
+                },
+              );
+            }),
           ),
         ],
       ),
     );
+  }
+
+  // Collect unique tags from the current matches list
+  List<String> _availableMatchTags() {
+    final tags = <String>{};
+    for (final m in _matches) {
+      tags.addAll(m.tags);
+    }
+    // Always include difficulty levels even if not present in matches
+    tags.addAll(['Easy', 'Normal', 'Hard']);
+    final list = tags.toList()..sort((a, b) {
+      // Keep difficulties grouped and predictable: Easy, Normal, Hard first
+      const order = ['Easy', 'Normal', 'Hard'];
+      final ai = order.contains(a) ? order.indexOf(a) : order.length;
+      final bi = order.contains(b) ? order.indexOf(b) : order.length;
+      if (ai != bi) return ai.compareTo(bi);
+      return a.compareTo(b);
+    });
+    return list;
   }
 
   Widget _buildMatchCard(ProgrammingLanguage language) {
@@ -709,6 +487,28 @@ puts greet("Developer")''',
                   color: Colors.white,
                 ),
                 textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 6),
+              // show small tag chips on match cards
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 6,
+                children: [
+                  Chip(
+                    label: Text(language.difficulty, style: const TextStyle(color: Colors.white, fontSize: 12)),
+                    backgroundColor: language.difficulty.toLowerCase() == 'easy'
+                        ? Colors.green
+                        : language.difficulty.toLowerCase() == 'hard'
+                            ? Colors.red
+                            : Colors.orange,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  ...language.tags.map((t) => Chip(
+                        label: Text(t, style: const TextStyle(color: Colors.white, fontSize: 12)),
+                        backgroundColor: Colors.grey[700],
+                        visualDensity: VisualDensity.compact,
+                      )),
+                ],
               ),
               const SizedBox(height: 8),
               Expanded(
@@ -746,15 +546,72 @@ class ProfileScreen extends StatelessWidget {
 
   const ProfileScreen({Key? key, required this.language}) : super(key: key);
 
+// New widget to build a section that contains a numbered list (roadmap)
+Widget _buildListSection(String title, List<String> items) {
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.pink,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ...items.asMap().entries.map((entry) {
+            final index = entry.key + 1;
+            final item = entry.value;
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '$index.',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      item,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                        height: 1.6,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+        ],
+      ),
+    );
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF1a1a1a),
       appBar: AppBar(
         backgroundColor: const Color(0xFF2a2a2a),
-        title: Text(language.name),
+        // Set AppBar title text color to white
+        title: Text(
+          language.name,
+          style: const TextStyle(color: Colors.white),
+        ),
+        // Set leading icon (back button) color to white
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -797,6 +654,12 @@ class ProfileScreen extends StatelessWidget {
               'About',
               language.description,
             ),
+            // NEW ROADMAP SECTION
+            _buildListSection(
+              'Your 5-Step Roadmap',
+              language.roadmap,
+            ),
+            // END NEW ROADMAP SECTION
             _buildSection(
               'Common Use Cases',
               language.useCases,
@@ -806,12 +669,27 @@ class ProfileScreen extends StatelessWidget {
               language.sampleCode,
             ),
             _buildResourcesSection(
+              context,
               'Learning Resources',
               language.resources,
             ),
             const SizedBox(height: 32),
           ],
         ),
+      ),
+      // NEW: Floating Action Button to start the chat
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChatScreen(language: language),
+            ),
+          );
+        },
+        label: Text('Chat with ${language.name}'),
+        icon: const Icon(Icons.chat),
+        backgroundColor: Colors.pink,
       ),
     );
   }
@@ -881,7 +759,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildResourcesSection(String title, List<String> resources) {
+  Widget _buildResourcesSection(BuildContext context, String title, List<String> resources) {
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: Column(
@@ -896,32 +774,336 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          ...resources.map((resource) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(
-                      Icons.book,
-                      color: Colors.pink,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        resource,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.white,
-                          height: 1.5,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              )),
+          ...resources.map((resource) {
+            // Expect resource strings in format: "Label - https://..."
+            final parts = resource.split(' - ');
+            final label = parts.isNotEmpty ? parts[0] : resource;
+            final url = parts.length > 1 ? parts.sublist(1).join(' - ').trim() : '';
+
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.book,
+                    color: Colors.pink,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: url.isNotEmpty
+                        ? InkWell(
+                            onTap: () async {
+                              try {
+                                final uri = Uri.parse(url);
+                                if (await canLaunchUrl(uri)) {
+                                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Could not open: $url')),
+                                  );
+                                }
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Invalid URL: $url')),
+                                );
+                              }
+                            },
+                            child: Text(
+                              label,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: Colors.lightBlueAccent,
+                                height: 1.5,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          )
+                        : Text(
+                            label,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.white,
+                              height: 1.5,
+                            ),
+                          ),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
         ],
       ),
     );
+  }
+}
+
+// --- NEW CHAT SCREEN IMPLEMENTATION ---
+
+class ChatScreen extends StatefulWidget {
+  final ProgrammingLanguage language;
+  const ChatScreen({Key? key, required this.language}) : super(key: key);
+
+  @override
+  State<ChatScreen> createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
+  final TextEditingController _controller = TextEditingController();
+  // Messages stored as map: {'sender': 'User' or 'AI', 'text': 'message'}
+  final List<Map<String, String>> _messages = [];
+  bool _isLoading = false;
+
+  // --- API Configuration ---
+  // NOTE: You must replace "" with your actual API key
+  static const _kApiKey = "AIzaSyCS8xCajNNoLrnqCjp3i-RvzURldijgGOA"; 
+  static const _kApiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent';
+  // --- End API Configuration ---
+
+  // Removed: List of potential chat starters with placeholders (_chatStarters)
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // Updated: Directly use the unique, personalized chat string stored in the language model
+    final initialMessage = widget.language.initialChat;
+
+    // Initial engaging message from the "language" persona
+    _messages.add({
+      'sender': 'AI',
+      'text': initialMessage,
+    });
+  }
+
+  Future<String> _handleGeminiRequest(String userQuery) async {
+    // 1. Construct the System Prompt
+    final systemPrompt =
+        "Act as you are in a dating app. You are the ${widget.language.name} Programming Language. Your responses should be playful, engaging, and based on your core features and use cases (${widget.language.useCases}). Your persona is defined by your bio: \"${widget.language.bio}\"";
+
+    // 2. Construct the API Payload
+    final payload = {
+      'contents': [
+        {
+          'parts': [
+            {'text': userQuery}
+          ]
+        }
+      ],
+      'systemInstruction': {
+        'parts': [
+          {'text': systemPrompt}
+        ]
+      },
+      // Enable Google Search for grounded responses
+      'tools': [
+        {'google_search': {}}
+      ],
+    };
+
+    // 3. Prepare URL and perform request with exponential backoff
+    final uri = Uri.parse('$_kApiUrl?key=$_kApiKey');
+    
+    for (int attempt = 0; attempt < 5; attempt++) {
+      try {
+        final response = await http.post(
+          uri,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(payload),
+        );
+
+        if (response.statusCode == 200) {
+          final result = jsonDecode(response.body);
+          // Safely extract the generated text
+          final text = result['candidates']?[0]['content']?['parts']?[0]?['text'] ??
+              'Sorry, I got distracted by a shiny new feature. Could you try again?';
+          
+          return text;
+        } else if (response.statusCode == 429 || response.statusCode >= 500) {
+          // Handle rate limiting (429) or server errors (5xx) with backoff
+          if (attempt < 4) {
+            await Future.delayed(Duration(seconds: 1 << attempt));
+            continue; // Retry the request
+          }
+          throw Exception('API failed after multiple retries.');
+        } else {
+          // Handle non-retriable client errors (4xx)
+          throw Exception('API failed with status ${response.statusCode}: ${response.body}');
+        }
+      } catch (e) {
+        // Handle network errors or decoding errors
+        if (attempt < 4) {
+            await Future.delayed(Duration(seconds: 1 << attempt));
+            continue; // Retry the request
+        }
+        throw Exception('Network request failed: $e');
+      }
+    }
+    // Should be unreachable, but here for completeness
+    throw Exception('Failed to get a response from the API.');
+  }
+
+  void _sendMessage() async {
+    final text = _controller.text.trim();
+    if (text.isEmpty || _isLoading) return;
+    if (_kApiKey.isEmpty) {
+       _messages.add({'sender': 'AI', 'text': 'ERROR: The API Key is empty. Please add your Gemini API Key to the `_kApiKey` constant in main.dart to enable the chat.'});
+       setState(() {});
+       return;
+    }
+
+    setState(() {
+      _messages.add({'sender': 'User', 'text': text});
+      _controller.clear();
+      _isLoading = true;
+    });
+
+    try {
+      final responseText = await _handleGeminiRequest(text);
+
+      setState(() {
+        _messages.add({'sender': 'AI', 'text': responseText});
+        _isLoading = false;
+      });
+    } catch (e) {
+      // Show error in the chat bubble
+      setState(() {
+        _messages.add({'sender': 'AI', 'text': 'Error communicating with the AI: ${e.toString()}'});
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF1a1a1a),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF2a2a2a),
+        // Set AppBar title text color to white
+        title: Text(
+          'Chatting with ${widget.language.name}',
+          style: const TextStyle(color: Colors.white),
+        ),
+        // Set leading icon (back button) color to white
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              reverse: true,
+              padding: const EdgeInsets.all(16.0),
+              itemCount: _messages.length,
+              itemBuilder: (context, index) {
+                final message = _messages[_messages.length - 1 - index];
+                return _buildMessageBubble(message['text']!, message['sender'] == 'AI');
+              },
+            ),
+          ),
+          if (_isLoading)
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: LinearProgressIndicator(color: Colors.pink),
+            ),
+          _buildInputBar(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMessageBubble(String text, bool isAI) {
+    return Align(
+      alignment: isAI ? Alignment.centerLeft : Alignment.centerRight,
+      child: Container(
+        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+        margin: const EdgeInsets.symmetric(vertical: 4.0),
+        padding: const EdgeInsets.all(12.0),
+        decoration: BoxDecoration(
+          color: isAI ? const Color(0xFF2a2a2a) : Colors.pink,
+          borderRadius: BorderRadius.circular(16.0).copyWith(
+            topLeft: isAI ? Radius.zero : const Radius.circular(16.0),
+            topRight: isAI ? const Radius.circular(16.0) : Radius.zero,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: (isAI ? Colors.grey : Colors.pink).withOpacity(0.1),
+              blurRadius: 5,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Text(
+          text,
+          style: TextStyle(color: isAI ? Colors.white : Colors.white),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInputBar() {
+    return Container(
+      padding: const EdgeInsets.all(8.0),
+      color: const Color(0xFF2a2a2a),
+      child: SafeArea(
+        child: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _controller,
+                onSubmitted: (value) => _sendMessage(),
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: 'Ask ${widget.language.name} about a project...',
+                  hintStyle: TextStyle(color: Colors.grey[500]),
+                  filled: true,
+                  fillColor: const Color(0xFF1a1a1a),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30.0),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.pink,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.pink.withOpacity(0.5),
+                    blurRadius: 10,
+                  ),
+                ],
+              ),
+              child: IconButton(
+                icon: _isLoading
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.send, color: Colors.white),
+                onPressed: _sendMessage,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 }
