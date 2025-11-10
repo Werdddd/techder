@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_markdown/flutter_markdown.dart';
 
 
+
 void main() {
   runApp(const TechderApp());
 }
@@ -1072,10 +1073,11 @@ class ProfileScreen extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF1a1a1a),
-      body: CustomScrollView(
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: const Color(0xFF1a1a1a),
+    body: SafeArea(
+      child: CustomScrollView(
         slivers: [
           SliverAppBar(
             expandedHeight: 250,
@@ -1139,37 +1141,49 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
           ),
+
+          // Content section
           SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildSection('About', language.description),
-                _buildListSection('Your 5-Step Roadmap', language.roadmap),
-                _buildSection('Common Use Cases', language.useCases),
-                _buildCodeSection('Sample Code', language.sampleCode),
-                _buildResourcesSection(context, 'Learning Resources', language.resources),
-                const SizedBox(height: 100),
-              ],
+            child: Padding(
+              // 👇 adds bottom padding so FAB won’t overlap
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).padding.bottom + 120,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSection('About', language.description),
+                  _buildListSection('Your 5-Step Roadmap', language.roadmap),
+                  _buildSection('Common Use Cases', language.useCases),
+                  _buildCodeSection('Sample Code', language.sampleCode),
+                  _buildResourcesSection(context, 'Learning Resources', language.resources),
+                ],
+              ),
             ),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ChatScreen(language: language),
-            ),
-          );
-        },
-        label: Text('Chat with ${language.name}'),
-        icon: const Icon(Icons.chat_bubble),
-        backgroundColor: Colors.pink,
-        elevation: 8,
-      ),
-    );
-  }
+    ),
+
+    // Floating chat button
+    floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+    floatingActionButton: FloatingActionButton.extended(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ChatScreen(language: language),
+          ),
+        );
+      },
+      label: Text('Chat with ${language.name}'),
+      icon: const Icon(Icons.chat_bubble),
+      backgroundColor: Colors.pink,
+      elevation: 8,
+    ),
+  );
+}
+
 
   Widget _buildSection(String title, String content) {
     return Padding(
@@ -1533,37 +1547,57 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildMessageBubble(String text, bool isAI) {
-    return Align(
-      alignment: isAI ? Alignment.centerLeft : Alignment.centerRight,
-      child: Container(
-        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
-        margin: const EdgeInsets.symmetric(vertical: 6.0),
-        padding: const EdgeInsets.all(16.0),
-        decoration: BoxDecoration(
-          gradient: isAI
-              ? null
-              : const LinearGradient(colors: [Colors.pink, Colors.pinkAccent]),
-          color: isAI ? const Color(0xFF2a2a2a) : null,
-          borderRadius: BorderRadius.circular(20).copyWith(
-            topLeft: isAI ? Radius.zero : const Radius.circular(20),
-            topRight: isAI ? const Radius.circular(20) : Radius.zero,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: (isAI ? Colors.grey : Colors.pink).withOpacity(0.2),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-          ],
+
+Widget _buildMessageBubble(String text, bool isAI) {
+  return Align(
+    alignment: isAI ? Alignment.centerLeft : Alignment.centerRight,
+    child: Container(
+      constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+      margin: const EdgeInsets.symmetric(vertical: 6.0),
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        gradient: isAI
+            ? null
+            : const LinearGradient(colors: [Colors.pink, Colors.pinkAccent]),
+        color: isAI ? const Color(0xFF2a2a2a) : null,
+        borderRadius: BorderRadius.circular(20).copyWith(
+          topLeft: isAI ? Radius.zero : const Radius.circular(20),
+          topRight: isAI ? const Radius.circular(20) : Radius.zero,
         ),
-        child: Text(
-          text,
-          style: const TextStyle(color: Colors.white, fontSize: 15, height: 1.4),
+        boxShadow: [
+          BoxShadow(
+            color: (isAI ? Colors.grey : Colors.pink).withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: MarkdownBody(
+        data: text,
+        styleSheet: MarkdownStyleSheet(
+          p: const TextStyle(
+            color: Colors.white,
+            fontSize: 15,
+            height: 1.4,
+          ),
+          strong: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+          em: const TextStyle(
+            color: Colors.white,
+            fontStyle: FontStyle.italic,
+          ),
+          code: const TextStyle(
+            color: Colors.orangeAccent,
+            fontFamily: 'monospace',
+          ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   Widget _buildInputBar() {
     return Container(
